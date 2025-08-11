@@ -1,0 +1,30 @@
+{
+  "name": "@fxfn/cmd",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "test": "vitest",
+    "test:ci": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@types/node": "^24.1.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@fxfn/inject": "https://github.com/fxfn/inject",
+    "@vitest/coverage-istanbul": "3.2.4",
+    "typescript": "^5.8.2",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
+  },
+  "peerDependencies": {
+    "@fxfn/inject": "workspace:*"
+  }
+}
