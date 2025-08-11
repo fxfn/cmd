@@ -7,21 +7,10 @@ import { parseOptions } from "./lib/parse-options";
 import { parseAdvancedArgs, validateAdvancedArgs } from "./lib/parse-advanced-args";
 import { resolveCommand } from "./lib/resolve-command";
 import { conf } from ".";
-import { container } from "@fxfn/inject";
+import { ContainerLike } from "./interfaces/container";
 
-export async function execute(input: string[]): Promise<number> {
+export async function execute(input: string[], container: ContainerLike): Promise<number> {
   const programName = container.resolve(conf.ProgramName)!
-  // parse input
-  //  - input could be commands
-  //    `help`
-  //    `list`
-  //  - input could be options to commands
-  //    `list --tenant=2`
-  //  - input could be options to the program
-  //    `-v`
-  //    `--version`
-  //  - input could be sub commands
-  //    `list help`
 
   // 1. parse args
   const args = parseArgs(input)
@@ -29,20 +18,20 @@ export async function execute(input: string[]): Promise<number> {
   // 2. find command
   let command: ICommand
   try {
-    command = resolveCommand(args)
+    command = resolveCommand(args, container)
   } catch (e) {
     if (e instanceof CommandNotFoundError) {
       if (args[args.length - 1].toLowerCase() !== 'help') {
         console.log(`error: unknown command "${args.join(' ')}" for "${programName}"\n`)
       }
 
-      const helpCommand = new HelpCommand()
+      const helpCommand = new HelpCommand(container)
       // Populate the help command with all available commands
       const allCommands = container.resolveAll(ICommand)
       helpCommand.commands = allCommands
       return await helpCommand.handler(args) || 0
     } else if (e instanceof NoCommandSpecifiedError) {
-      const helpCommand = new HelpCommand()
+      const helpCommand = new HelpCommand(container)
       // Populate the help command with all available commands
       const allCommands = container.resolveAll(ICommand)
       helpCommand.commands = allCommands

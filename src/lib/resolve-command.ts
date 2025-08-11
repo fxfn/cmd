@@ -1,8 +1,8 @@
+import { ContainerLike } from "interfaces/container";
 import { CommandNotFoundError, NoCommandSpecifiedError } from "../errors";
 import { ICommand } from "../interfaces/command";
-import { container } from "@fxfn/inject";
 
-export function resolveCommand(args: string[]): ICommand {
+export function resolveCommand(args: string[], container: ContainerLike): ICommand {
   if (args.length === 0) {
     throw new NoCommandSpecifiedError();
   }

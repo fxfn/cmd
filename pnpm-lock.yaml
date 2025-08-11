@@ -15,9 +15,6 @@ importers:
         specifier: ^3.25.76
         version: 3.25.76
     devDependencies:
-      '@fxfn/inject':
-        specifier: https://github.com/fxfn/inject
-        version: https://codeload.github.com/fxfn/inject/tar.gz/98448b0bc6d7ba5e66a1be54c412108a2b2b67dd
       '@vitest/coverage-istanbul':
         specifier: 3.2.4
         version: 3.2.4(vitest@3.2.4(@types/node@24.2.1))
@@ -259,10 +256,6 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
-
-  '@fxfn/inject@https://codeload.github.com/fxfn/inject/tar.gz/98448b0bc6d7ba5e66a1be54c412108a2b2b67dd':
-    resolution: {tarball: https://codeload.github.com/fxfn/inject/tar.gz/98448b0bc6d7ba5e66a1be54c412108a2b2b67dd}
-    version: 0.0.1
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -1088,8 +1081,6 @@ snapshots:
 
   '@esbuild/win32-x64@0.25.8':
     optional: true
-
-  '@fxfn/inject@https://codeload.github.com/fxfn/inject/tar.gz/98448b0bc6d7ba5e66a1be54c412108a2b2b67dd': {}
 
   '@isaacs/cliui@8.0.2':
     dependencies:

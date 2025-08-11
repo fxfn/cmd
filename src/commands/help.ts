@@ -1,8 +1,9 @@
 import { ICommand } from "../interfaces/command";
 import { conf } from "..";
-import { inject, injectAll } from "@fxfn/inject"
 import { Options } from "../types";
 import { z } from "zod/v4";
+import { ContainerLike } from "../interfaces/container";
+import { Container } from "../lib/container";
 import { resolveCommand } from "../lib/resolve-command";
 
 export class HelpCommand extends ICommand {
@@ -10,18 +11,24 @@ export class HelpCommand extends ICommand {
   description = "Show help for a command"
   opts = z.array(z.string())
 
-  @inject(conf.ProgramName)
-  programName!: string
-
+  programName: string
   commands: ICommand[] = []
+  container: ContainerLike
 
-  constructor() {
+  constructor(container: ContainerLike) {
     super()
+    if (!container) {
+      this.container = new Container()
+    }
+    else {
+      this.container = container
+    }
     // We'll set commands after construction to avoid circular dependency
+    this.commands = this.container.resolveAll(ICommand)
+    this.programName = this.container.resolve(conf.ProgramName)
   }
 
   async handler(input: Options<HelpCommand>) {
-
     let opts = [...input]
     if (opts[opts.length-1] === "help") {
       opts = [...input].slice(0, -1)
@@ -60,7 +67,7 @@ Options:
 
 
     // get the help for the command that the user is attempting
-    command = resolveCommand(opts)
+    command = resolveCommand(opts, this.container as ContainerLike)
     let commands = []
     for (const child of command.children || []) {
       const childCommand = this.commands.find(c => c instanceof child)

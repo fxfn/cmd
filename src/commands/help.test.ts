@@ -1,9 +1,10 @@
-import { container } from "@fxfn/inject";
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { z } from "zod/v4";
 import { HelpCommand } from "./help";
 import { ICommand } from "../interfaces/command";
 import { conf } from "..";
+import { Container } from "../lib/container";
+import { ContainerLike } from "../interfaces/container";
 
 // Mock console.log to capture output
 const mockConsoleLog = vi.fn();
@@ -138,9 +139,10 @@ class NoOptionsCommand extends ICommand {
 
 describe('HelpCommand', () => {
   let helpCommand: HelpCommand;
+  let container: ContainerLike;
   
   beforeEach(() => {
-    container.reset();
+    container = new Container()
     vi.clearAllMocks();
     
     // Mock console.log
@@ -162,7 +164,7 @@ describe('HelpCommand', () => {
     container.register(conf.ProgramName, { useValue: 'test-program' });
     
     // Create help command instance after registration
-    helpCommand = new HelpCommand();
+    helpCommand = new HelpCommand(container);
     
     // Manually set the commands to avoid circular dependency
     const allCommands = container.resolveAll(ICommand);

@@ -1,10 +1,11 @@
-import { container } from "@fxfn/inject";
 import { ICommand } from "..";
 import { resolveCommand } from "./resolve-command";
 import { describe, it, expect, beforeEach } from "vitest";
 import { z } from "zod/v4";
 import { CommandNotFoundError, NoCommandSpecifiedError } from "../errors";
 import { parseOptions } from "./parse-options";
+import { Container } from "./container";
+import { ContainerLike } from "interfaces/container";
 
 class ChildCommand extends ICommand {
   name = 'child'
@@ -28,8 +29,10 @@ class RootCommand extends ICommand {
 }
 
 describe('resolveCommand', () => {
+  let container: ContainerLike
+
   beforeEach(() => {
-    container.reset()
+    container = new Container()
   })
   
   it('should resolve a single command', () => {
@@ -37,7 +40,7 @@ describe('resolveCommand', () => {
     container.register(ICommand, { useClass: ChildCommand })
 
     const args = ['root']
-    const command = resolveCommand(args)
+    const command = resolveCommand(args, container)
     expect(command.name).toBe('root')
   })
 
@@ -46,7 +49,7 @@ describe('resolveCommand', () => {
     container.register(ICommand, { useClass: ChildCommand })
 
     const args = ['root', 'child']
-    const command = resolveCommand(args)
+    const command = resolveCommand(args, container)
     expect(command.name).toBe('child')
   })
 
@@ -55,11 +58,11 @@ describe('resolveCommand', () => {
     container.register(ICommand, { useClass: ChildCommand })
 
     const args = ['root', 'not-found']
-    expect(() => resolveCommand(args)).toThrow(CommandNotFoundError)
+    expect(() => resolveCommand(args, container)).toThrow(CommandNotFoundError)
   })
 
   it('should throw an error if no command is specified', () => {
-    expect(() => resolveCommand([])).toThrow(NoCommandSpecifiedError)
+    expect(() => resolveCommand([], container)).toThrow(NoCommandSpecifiedError)
   })
 
   it('should resolve a command with the correct options', () => {
@@ -79,7 +82,7 @@ describe('resolveCommand', () => {
     container.register(ICommand, { useClass: EmailCommand })
 
     const args = ['email']
-    const command = resolveCommand(args)
+    const command = resolveCommand(args, container)
 
     const opts = parseOptions(['--to=test@test.com', '--to=test2@test.com', '--subject=Test', '--body=Test'], command.opts || z.any())
     expect(opts.data).toEqual({

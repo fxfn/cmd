@@ -18,13 +18,9 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@fxfn/inject": "https://github.com/fxfn/inject",
     "@vitest/coverage-istanbul": "3.2.4",
     "typescript": "^5.8.2",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4"
-  },
-  "peerDependencies": {
-    "@fxfn/inject": "workspace:*"
   }
 }
