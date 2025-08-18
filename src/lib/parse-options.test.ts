@@ -270,4 +270,20 @@ describe('parseOptions', () => {
       numbers: [1, 2, 3, 4, 5]
     })
   })
+
+  it('should parse multiple options with union schema (string or array) to an array', () => {
+    const schema = z.object({
+      to: z.string().or(z.array(z.string()))
+    })
+
+    const input = ['--to=foo@bar.com', '--to=hello@world.com']
+    const result = parseOptions(input, schema)
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data).toEqual({
+        to: ['foo@bar.com', 'hello@world.com']
+      })
+    }
+  })
 })

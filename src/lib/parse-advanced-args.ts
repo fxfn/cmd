@@ -77,7 +77,7 @@ function parseAdvancedValue(value: string): { value: unknown; type: ParsedArgume
   }
   
   // Check if it contains key-value pairs (object-like)
-  if (value.includes('=') && value.includes(',')) {
+  if (value.includes('=')) {
     const parsed = parseObjectValue(value)
     if (parsed.isObject) {
       return { value: parsed.value, type: 'object' }
@@ -197,11 +197,75 @@ export function validateAdvancedArgs<T extends z.ZodType>(
 ): { success: true; data: z.infer<T> } | { success: false; error: z.ZodError } {
   const parsedObject: Record<string, unknown> = {}
   
+  // Group arguments by key to handle multiple values
+  const groupedArgs: Record<string, ParsedArgument[]> = {}
   for (const arg of args) {
-    parsedObject[arg.key] = arg.value
+    if (!groupedArgs[arg.key]) {
+      groupedArgs[arg.key] = []
+    }
+    groupedArgs[arg.key].push(arg)
+  }
+  
+  // Process each key, handling multiple values appropriately
+  for (const [key, keyArgs] of Object.entries(groupedArgs)) {
+    if (keyArgs.length === 1) {
+      // Single value, use as-is
+      parsedObject[key] = keyArgs[0].value
+    } else {
+      // Multiple values - check if schema expects array or union with array
+      const isArrayExpected = isArraySchemaAtPath(schema, key)
+      
+      if (isArrayExpected) {
+        // Schema expects an array, collect all values
+        parsedObject[key] = keyArgs.map(arg => arg.value)
+      } else {
+        // Schema doesn't expect array, use last value (existing behavior)
+        parsedObject[key] = keyArgs[keyArgs.length - 1].value
+      }
+    }
   }
   
   return schema.safeParse(parsedObject)
+}
+
+/**
+ * Check if a schema at a given path expects an array or union that includes an array
+ */
+function isArraySchemaAtPath(schema: z.ZodType, path: string): boolean {
+  const segments = path.split('.')
+  let current: any = schema
+
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i]
+    const def = current?._def
+    if (!def) return false
+
+    if (def.type === 'object') {
+      // In Zod v3, shape can be a function or object
+      const shapeOrGetter: any = (def as any).shape
+      const shape = typeof shapeOrGetter === 'function' ? shapeOrGetter() : shapeOrGetter
+      current = shape?.[seg]
+      if (!current) return false
+    } else {
+      // If not an object, we cannot traverse further
+      return false
+    }
+  }
+
+  const finalDef = current?._def
+  
+  // Check if it's directly an array
+  if (finalDef?.type === 'array') {
+    return true
+  }
+  
+  // Check if it's a union that includes an array
+  if (finalDef?.type === 'union') {
+    const options = finalDef.options || []
+    return options.some((option: any) => option._def?.type === 'array')
+  }
+  
+  return false
 }
 
 /**

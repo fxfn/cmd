@@ -150,6 +150,23 @@ describe('parseAdvancedArgs', () => {
     expect(result[3].type).toBe('array')
     expect(result[4].type).toBe('object')
   })
+
+  it('should parse multiple options with union schema (string or array) to an array', () => {
+    const schema = z.object({
+      to: z.string().or(z.array(z.string()))
+    })
+
+    const input = ['--to=foo@bar.com', '--to=hello@world.com']
+    const parsedArgs = parseAdvancedArgs(input)
+    const result = validateAdvancedArgs(parsedArgs, schema)
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data).toEqual({
+        to: ['foo@bar.com', 'hello@world.com']
+      })
+    }
+  })
 })
 
 describe('validateAdvancedArgs', () => {
@@ -225,6 +242,28 @@ describe('validateAdvancedArgs', () => {
     if (!result.success) {
       expect(result.error.issues).toHaveLength(1)
       expect(result.error.issues[0].message).toContain('expected number to be >=18')
+    }
+  })
+
+  it('should parse an object with nullish values correctly', () => {
+    const schema = z.object({
+      attachments: z.object({
+        filename: z.string().nullish(),
+        content: z.string().nullish(),
+        file: z.string().nullish(),
+      })
+    })
+
+    const args = parseAdvancedArgs(['--attachments=file=/tmp/foobar.txt'])
+    const result = validateAdvancedArgs(args, schema)
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data).toEqual({
+        attachments: {
+          file: '/tmp/foobar.txt'
+        }
+      })
     }
   })
 })
